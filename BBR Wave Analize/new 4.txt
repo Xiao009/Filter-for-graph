@@ -1,0 +1,138 @@
+%初始信号
+clc
+clear all
+
+[fname, fpath, fltidx] = uigetfile("*.log");
+Fs = 214.65;
+
+pkg load signal
+[time force deflection] = textread(strcat(fpath,fname),"%d %d %d");
+if (time(2)==time(3))
+  buffer = time;
+  time = force;
+  force = buffer;
+endif
+force = force(2:end);
+length(force)
+count=0;
+first=0;
+x1=0;
+x2=0;
+for i=1:7
+if (first==1)
+  if (force(i)==force(i+1))
+    count++;
+   else
+    count++;
+    x2=i;
+    break;
+  endif
+else
+   if (force(i)!=force(i+1))
+  count=0;
+  first=1;
+  x1=i;
+  endif
+endif
+endfor
+T = (time(x2)-time(x1));
+Fs = double(200000.0)/double(T) ;
+dt=0:T:5e-3-T;
+load = downsample(force,count);
+x=load
+subplot(2,1,1);
+plot(double(x)/double(10000.0));
+title('initial signal');
+
+#fft, frequency domain transfer
+k = load([200:1100]);
+L=length(k)
+y=fft(k)
+P2 = abs(y/L);
+P1 = P2(1:L/2+1);
+P1(2:end-1) = 2*P1(2:end-1);
+f = Fs*(0:(L/2))/L;
+
+yfft=fftshift(fft(y));
+subplot(2,1,2);
+plot(f,P1);
+axis([0 50 0 100]);
+title('frequence');
+set(gca,'XTick',0:2:100)
+
+function my_output=ideallp(wc,N) 
+
+%Ideal Lowpass filter computation 
+
+%[hd]=ideal_lp(wc,M) 
+
+% hd=ideal impulse response between 0 to M-1 
+
+% wc=cutoff frequency in radians 
+
+% M=length of the ideal filter 
+
+% 
+
+alpha=(N-1)/2; 
+
+n=0:1:(N-1); 
+
+m=n-alpha+eps; 
+
+my_output=sin(wc*m)./(pi*m); 
+
+end 
+
+
+
+%BoxCar Filter 
+wp=2*pi*0.5/Fs;       #通带 passband  fs=0.5              
+ws=2*pi*2/Fs;       #阻带 stopband   fp=1             
+deltaw=ws-wp;    #transition zone width                 
+N=ceil(7.5*pi/deltaw);  #1.8  max 8.9        
+wc=(ws+wp)/2          #bandpass range
+hd=ideallp(wc,N);                 
+#wd1=chebwin(N);  
+wd1=boxcar(N);
+#wd1=hamming(N);
+#wd1=triang(N);
+#wd1=blackman(N);
+#wd1=kaiser(N,5.658);
+#wd1=bartlett(N);
+h1=hd.*wd1';
+#final=conv(double(x)/double(10000.0),h1);
+final=fftfilt(h1,double(x)/double(10000.0),200);
+#final=medfilt1(final,4);
+[H1,w]=freqz(hd,1);                
+
+
+%滤波之后的信号
+figure;
+subplot(2,1,1);
+plot(final);
+title('processed signal');
+subplot(2,1,2);
+plot(w/pi,20*log10(abs(H1)));
+title('frequence response');
+ynfft1=fftshift(fft(final)) 
+figure;
+subplot(2,1,1);
+#ynfft1=bpfilt(ynfft1,600,616)
+plot(abs(ynfft1))
+title('frequence filted');
+orig=ifft(ynfft1)
+subplot(2,1,2)
+plot(orig)
+
+
+#ynfft=fftshift(fft(final));
+#subplot(2,1,2);
+#plot(w,abs(ynfft));
+#axis([0 50 0 100]);
+#title('frequence filted');
+
+#Median filter
+#load1=medfilt1(load,51)
+#figure(3)
+#plot(double(load1)/double(10000.0));

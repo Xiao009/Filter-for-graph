@@ -1,0 +1,18 @@
+{
+	"BootloaderFiles": [{
+		"FileName": "BBRSensors.bin",
+		"Addr": 1552,
+		"ProductName": "BBR Sensors"
+	},
+	{
+		"FileName": "BBRFrontPanel.bin",
+		"Addr": 1808,
+		"ProductName": "BBR Front Panel"
+	},
+	{
+		"FileName": "BBR_SMARC.bin",
+		"Addr": 0,
+		"ProductName": "BBR"
+	}
+	]
+}

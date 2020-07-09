@@ -1,0 +1,16 @@
+#wd1=hamming(N);
+#wd1=triang(N);
+#wd1=blackman(N);
+#wd1=kaiser(N,5.658);
+#wd1=bartlett(N);
+#wd1=chebwin(N);  
+#final=conv(double(x)/double(10000.0),h1);
+#final=medfilt1(final,4);
+
+
+#ynfft1=bpfilt(ynfft1,600,616)           //bandpass filter set up 
+
+#第二图b
+orig=ifft(ynfft1)
+subplot(2,1,2)
+plot(orig)
